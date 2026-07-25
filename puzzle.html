@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puzzle Challenge - Competencia</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+  :root { --primary:#2563eb; --primary-dark:#1d4ed8; --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --bg:#f8fafc; --card:#fff; --text:#1e293b; --text-light:#64748b; --border:#e2e8f0; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  .container{max-width:1200px;margin:0 auto;padding:20px}
+  .header{text-align:center;margin-bottom:30px}
+  .header h1{font-size:2.2rem;font-weight:900;color:var(--primary);margin-bottom:8px}
+  .header p{color:var(--text-light);font-size:1rem}
+  .tabs{display:flex;gap:8px;margin-bottom:24px;justify-content:center;flex-wrap:wrap}
+  .tab{padding:10px 24px;border-radius:12px;border:2px solid var(--border);background:var(--card);cursor:pointer;font-weight:600;transition:all .2s}
+  .tab.active{background:var(--primary);color:white;border-color:var(--primary)}
+  .tab:hover:not(.active){border-color:var(--primary);color:var(--primary)}
+  .panel{display:none;background:var(--card);border-radius:16px;padding:28px;box-shadow:0 4px 20px rgba(0,0,0,0.06);margin-bottom:20px}
+  .panel.active{display:block}
+  .section-title{font-size:1.3rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .badge{background:var(--primary);color:white;padding:2px 10px;border-radius:20px;font-size:.75rem}
+  .form-group{margin-bottom:18px}
+  .form-group label{display:block;font-weight:600;margin-bottom:6px;font-size:.9rem}
+  .form-group input,.form-group textarea{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-size:1rem;transition:border .2s}
+  .form-group input:focus,.form-group textarea:focus{outline:none;border-color:var(--primary)}
+  .form-group small{color:var(--text-light);font-size:.8rem}
+  .btn{padding:12px 24px;border-radius:10px;border:none;font-weight:600;cursor:pointer;font-size:1rem;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+  .btn-primary{background:var(--primary);color:white}
+  .btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px)}
+  .btn-success{background:var(--success);color:white}
+  .btn-danger{background:var(--danger);color:white}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .image-preview{width:100%;max-width:400px;height:250px;border:3px dashed var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:12px 0;overflow:hidden;position:relative;background:#f1f5f9;cursor:pointer}
+  .image-preview img{max-width:100%;max-height:100%;object-fit:contain}
+  .image-preview .placeholder{color:var(--text-light);font-size:.9rem}
+  .qr-section{text-align:center;padding:20px;background:#f1f5f9;border-radius:12px;margin-top:16px}
+  .qr-code{width:200px;height:200px;margin:12px auto;background:white;padding:12px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.08)}
+  .url-display{font-family:monospace;background:white;padding:8px 12px;border-radius:8px;word-break:break-all;font-size:.85rem;color:var(--primary);margin-top:8px}
+  .game-status{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+  .status-card{flex:1;min-width:150px;background:#f1f5f9;padding:16px;border-radius:12px;text-align:center}
+  .status-card .number{font-size:2rem;font-weight:900;color:var(--primary)}
+  .status-card .label{font-size:.85rem;color:var(--text-light)}
+  table{width:100%;border-collapse:collapse;margin-top:12px}
+  th,td{padding:12px;text-align:left;border-bottom:1px solid var(--border)}
+  th{font-weight:700;color:var(--text-light);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em}
+  tr:hover{background:#f8fafc}
+  .rank-1{color:#f59e0b;font-weight:900}
+  .rank-2{color:#94a3b8;font-weight:700}
+  .rank-3{color:#b45309;font-weight:700}
+  .game-container{text-align:center}
+  .game-info{display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap}
+  .game-info-item{background:var(--card);padding:10px 20px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);font-weight:700}
+  .game-info-item span{color:var(--primary);font-size:1.2rem}
+  .puzzle-board{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;width:100%;max-width:500px;margin:0 auto 20px;aspect-ratio:2/1;background:var(--border);padding:4px;border-radius:12px}
+  .puzzle-slot{background:#e2e8f0;border-radius:8px;position:relative;overflow:hidden;min-height:80px}
+  .puzzle-slot.drag-over{background:#bfdbfe;border:2px dashed var(--primary)}
+  .puzzle-slot.correct{box-shadow:inset 0 0 0 2px var(--success)}
+  .pieces-pool{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:20px 0;min-height:120px;padding:16px;background:#f1f5f9;border-radius:12px}
+  .puzzle-piece{width:90px;height:90px;border-radius:8px;cursor:grab;box-shadow:0 2px 8px rgba(0,0,0,0.15);transition:transform .2s;border:2px solid white}
+  .puzzle-piece:hover{transform:scale(1.05)}
+  .puzzle-piece.dragging{opacity:.5;cursor:grabbing}
+  .guess-section{max-width:500px;margin:20px auto;padding:20px;background:#fef3c7;border-radius:12px;border:2px solid #f59e0b}
+  .guess-section h3{margin-bottom:12px;color:#92400e}
+  .result-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:1000}
+  .result-modal.show{display:flex}
+  .result-content{background:white;padding:40px;border-radius:20px;text-align:center;max-width:450px;width:90%;animation:popIn .3s ease}
+  @keyframes popIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+  .result-content h2{font-size:2rem;margin-bottom:12px}
+  .result-content .score-display{font-size:4rem;font-weight:900;color:var(--primary);margin:16px 0}
+  .result-content .message{color:var(--text-light);margin-bottom:20px}
+  .hidden{display:none!important}
+  .alert{padding:12px 16px;border-radius:10px;margin-bottom:16px;font-weight:600}
+  .alert-info{background:#dbeafe;color:#1e40af}
+  .alert-success{background:#d1fae5;color:#065f46}
+  .alert-warning{background:#fef3c7;color:#92400e}
+  .start-screen{text-align:center;padding:40px 20px}
+  .start-screen h2{font-size:1.8rem;margin-bottom:12px}
+  .start-screen p{color:var(--text-light);margin-bottom:24px}
+  @media(max-width:600px){
+    .puzzle-board{grid-template-columns:repeat(5,1fr);gap:2px}
+    .puzzle-piece{width:60px;height:60px}
+    .header h1{font-size:1.6rem}
+  }
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-8px)}}
+</style>
+<base target="_blank">
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🧩 Puzzle Challenge</h1>
+    <p>Competencia de armado de imagen - 10 piezas</p>
+  </div>
+  
+  <div class="tabs" id="mainTabs">
+    <div class="tab active" onclick="switchTab('admin')">🎛️ Panel de Control</div>
+    <div class="tab" onclick="switchTab('game')">🎮 Jugar</div>
+    <div class="tab" onclick="switchTab('leaderboard')">🏆 Leaderboard</div>
+  </div>
+  
+  <div class="panel active" id="panel-admin">
+    <div class="section-title">Configurar Juego <span class="badge">ADMIN</span></div>
+    <div class="alert alert-info" id="adminAlert" style="display:none"></div>
+    
+    <div class="form-group">
+      <label>1. Selecciona la imagen a armar (se recortará en 10 piezas)</label>
+      <div class="image-preview" id="adminImagePreview"><span class="placeholder">📷 Haz clic para subir imagen</span></div>
+      <input type="file" id="imageInput" accept="image/*" style="display:none">
+      <input type="hidden" id="imageData">
+    </div>
+    
+    <div class="form-group">
+      <label>2. ¿Quién o qué es la imagen? (Respuesta correcta)</label>
+      <input type="text" id="correctAnswer" placeholder="Ej: Canal de Panamá, Juan Pérez, Logo de la empresa...">
+      <small>Los jugadores deberán escribir esto al terminar. Se aceptarán variaciones menores.</small>
+    </div>
+    
+    <div class="form-group">
+      <label>3. Pista (opcional, para mostrar a los jugadores)</label>
+      <input type="text" id="gameHint" placeholder="Ej: Es un lugar famoso de Panamá">
+    </div>
+    
+    <button class="btn btn-primary" onclick="setupGame()">💾 Guardar y Generar QR</button>
+    <button class="btn btn-danger" onclick="resetGame()" style="margin-left:8px">🗑️ Reiniciar Todo</button>
+    
+    <div class="qr-section" id="qrSection" style="display:none">
+      <h3>📱 Código QR para los jugadores</h3>
+      <p>Imprime y pega esto en la pared. Los jugadores escanean para jugar.</p>
+      <div class="qr-code" id="qrCode"><div style="width:100%;height:100%;background:repeating-conic-gradient(#1e293b 0% 25%,white 0% 50%) 50% / 20px 20px;border-radius:4px;display:flex;align-items:center;justify-content:center"><span style="background:white;padding:8px;border-radius:4px;font-size:10px;font-weight:700">QR<br>SCAN</span></div></div>
+      <div class="url-display" id="playerUrl"></div>
+      <p style="margin-top:12px;color:var(--text-light);font-size:.85rem">💡 Recomendación: Usa <a href="https://www.qr-code-generator.com" target="_blank">qr-code-generator.com</a> con esta URL para un QR real.</p>
+    </div>
+    
+    <div style="margin-top:30px">
+      <div class="section-title">Estadísticas del Juego Actual</div>
+      <div class="game-status">
+        <div class="status-card"><div class="number" id="statPlayers">0</div><div class="label">Jugadores</div></div>
+        <div class="status-card"><div class="number" id="statCompleted">0</div><div class="label">Completados</div></div>
+        <div class="status-card"><div class="number" id="statBest">--</div><div class="label">Mejor Tiempo</div></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="panel" id="panel-game">
+    <div id="gameStartScreen" class="start-screen">
+      <h2>🧩 ¿Listo para el reto?</h2>
+      <p>Arma la imagen con 10 piezas. <strong>No verás la imagen completa de referencia.</strong><br>Al terminar, debes adivinar quién o qué es para ganar puntos extra.</p>
+      <div id="gameHintDisplay" class="alert alert-warning" style="display:none;max-width:400px;margin:16px auto"></div>
+      <div class="form-group" style="max-width:300px;margin:20px auto">
+        <input type="text" id="playerName" placeholder="Tu nombre / apodo" style="text-align:center">
+      </div>
+      <button class="btn btn-primary" onclick="startGame()" style="font-size:1.2rem;padding:16px 40px">🚀 Comenzar Juego</button>
+    </div>
+    
+    <div id="gamePlayArea" class="hidden">
+      <div class="game-info">
+        <div class="game-info-item">⏱️ Tiempo: <span id="timer">00:00</span></div>
+        <div class="game-info-item">🎯 Piezas: <span id="piecesCount">0/10</span></div>
+        <div class="game-info-item">👤 <span id="displayPlayerName">Jugador</span></div>
+      </div>
+      <div class="puzzle-board" id="puzzleBoard"></div>
+      <div style="margin:16px 0;color:var(--text-light);font-size:.9rem">👆 Arrastra las piezas al tablero. Si la pieza es correcta, se bloquea.</div>
+      <div class="pieces-pool" id="piecesPool"></div>
+      <div class="guess-section" id="guessSection" style="display:none">
+        <h3>🤔 ¿Quién o qué es la imagen que armaste?</h3>
+        <p style="margin-bottom:12px;color:#92400e;font-size:.9rem">Escribe tu respuesta. Cuanto más cerca estés, más puntos ganarás.</p>
+        <input type="text" id="playerGuess" placeholder="Escribe aquí tu respuesta..." style="margin-bottom:12px">
+        <button class="btn btn-success" onclick="submitGame()">✅ Enviar Respuesta</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="panel" id="panel-leaderboard">
+    <div class="section-title">🏆 Tabla de Clasificación</div>
+    <div id="leaderboardEmpty" style="text-align:center;padding:40px;color:var(--text-light)">
+      <p style="font-size:3rem;margin-bottom:12px">🏅</p>
+      <p>Aún no hay jugadores. ¡Sé el primero!</p>
+    </div>
+    <div id="leaderboardContent" style="display:none">
+      <table>
+        <thead><tr><th>#</th><th>Jugador</th><th>Tiempo</th><th>Piezas</th><th>Adivinanza</th><th>Puntaje</th></tr></thead>
+        <tbody id="leaderboardBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="result-modal" id="resultModal">
+  <div class="result-content">
+    <div id="resultEmoji" style="font-size:4rem;margin-bottom:8px">🎉</div>
+    <h2 id="resultTitle">¡Completado!</h2>
+    <div class="score-display" id="resultScore">0</div>
+    <p class="message" id="resultMessage">Mensaje aquí</p>
+    <div style="background:#f1f5f9;padding:16px;border-radius:12px;margin-bottom:20px;text-align:left">
+      <p><strong>⏱️ Tiempo:</strong> <span id="resultTime"></span></p>
+      <p><strong>🎯 Piezas correctas:</strong> <span id="resultPieces"></span></p>
+      <p><strong>🤔 Tu respuesta:</strong> <span id="resultGuess"></span></p>
+      <p><strong>✅ Respuesta correcta:</strong> <span id="resultAnswer"></span></p>
+    </div>
+    <button class="btn btn-primary" onclick="closeResult()">Jugar de Nuevo</button>
+    <button class="btn" onclick="switchTab('leaderboard');closeResult()" style="margin-left:8px;background:var(--border)">Ver Leaderboard</button>
+  </div>
+</div>
+
+<script>
+let gameState={image:localStorage.getItem('puzzle_image')||'',answer:localStorage.getItem('puzzle_answer')||'',hint:localStorage.getItem('puzzle_hint')||'',active:localStorage.getItem('puzzle_active')==='true',scores:JSON.parse(localStorage.getItem('puzzle_scores')||'[]')};
+let currentGame={playerName:'',startTime:null,timerInterval:null,piecesPlaced:0,shuffledPieces:[],correctPositions:{}};
+const els={imageInput:document.getElementById('imageInput'),imagePreview:document.getElementById('adminImagePreview'),imageData:document.getElementById('imageData'),correctAnswer:document.getElementById('correctAnswer'),gameHint:document.getElementById('gameHint'),qrSection:document.getElementById('qrSection'),playerUrl:document.getElementById('playerUrl'),adminAlert:document.getElementById('adminAlert'),statPlayers:document.getElementById('statPlayers'),statCompleted:document.getElementById('statCompleted'),statBest:document.getElementById('statBest')};
+
+function init(){
+  if(gameState.image){els.imagePreview.innerHTML=`<img src="${gameState.image}" alt="Preview">`;els.imageData.value=gameState.image}
+  if(gameState.answer)els.correctAnswer.value=gameState.answer;
+  if(gameState.hint)els.gameHint.value=gameState.hint;
+  updateStats();
+  els.imagePreview.addEventListener('click',()=>els.imageInput.click());
+  els.imageInput.addEventListener('change',handleImageUpload);
+  const urlParams=new URLSearchParams(window.location.search);
+  if(urlParams.get('mode')==='play'){switchTab('game');document.getElementById('mainTabs').style.display='none'}
+}
+function handleImageUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(evt){
+    const img=new Image();
+    img.onload=function(){
+      const canvas=document.createElement('canvas');
+      const maxWidth=800;const scale=Math.min(1,maxWidth/img.width);
+      canvas.width=img.width*scale;canvas.height=img.height*scale;
+      const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      const dataUrl=canvas.toDataURL('image/jpeg',0.85);
+      els.imagePreview.innerHTML=`<img src="${dataUrl}" alt="Preview">`;els.imageData.value=dataUrl;
+    };img.src=evt.target.result;
+  };reader.readAsDataURL(file);
+}
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  if(event&&event.target&&event.target.closest){event.target.closest('.tab').classList.add('active')}
+  else{document.querySelector(`.tab:nth-child(${tab==='admin'?1:tab==='game'?2:3})`).classList.add('active')}
+  document.getElementById(`panel-${tab}`).classList.add('active');
+  if(tab==='leaderboard')renderLeaderboard();
+}
+function showAdminAlert(msg,type='info'){
+  els.adminAlert.textContent=msg;els.adminAlert.className=`alert alert-${type}`;els.adminAlert.style.display='block';
+  setTimeout(()=>els.adminAlert.style.display='none',5000);
+}
+function setupGame(){
+  const image=els.imageData.value,answer=els.correctAnswer.value.trim(),hint=els.gameHint.value.trim();
+  if(!image){showAdminAlert('❌ Debes subir una imagen primero','warning');return}
+  if(!answer){showAdminAlert('❌ Debes escribir la respuesta correcta','warning');return}
+  gameState.image=image;gameState.answer=answer;gameState.hint=hint;gameState.active=true;
+  localStorage.setItem('puzzle_image',image);localStorage.setItem('puzzle_answer',answer);
+  localStorage.setItem('puzzle_hint',hint);localStorage.setItem('puzzle_active','true');
+  const baseUrl=window.location.href.split('?')[0];const playerUrl=`${baseUrl}?mode=play`;
+  els.playerUrl.textContent=playerUrl;els.qrSection.style.display='block';
+  showAdminAlert('✅ Juego configurado. Imprime esta página para obtener el QR','success');
+  updateStats();
+}
+function resetGame(){
+  if(!confirm('¿Seguro que quieres reiniciar todo? Se borrarán todas las puntuaciones.'))return;
+  gameState={image:'',answer:'',hint:'',active:false,scores:[]};
+  localStorage.removeItem('puzzle_image');localStorage.removeItem('puzzle_answer');
+  localStorage.removeItem('puzzle_hint');localStorage.removeItem('puzzle_active');localStorage.removeItem('puzzle_scores');
+  els.imagePreview.innerHTML='<span class="placeholder">📷 Haz clic para subir imagen</span>';els.imageData.value='';
+  els.correctAnswer.value='';els.gameHint.value='';els.qrSection.style.display='none';
+  showAdminAlert('🗑️ Juego reiniciado completamente','info');updateStats();
+}
+function updateStats(){
+  const scores=gameState.scores;els.statPlayers.textContent=new Set(scores.map(s=>s.player)).size;
+  els.statCompleted.textContent=scores.length;
+  if(scores.length>0){const best=scores.reduce((a,b)=>a.timeSeconds<b.timeSeconds?a:b);const mins=Math.floor(best.timeSeconds/60).toString().padStart(2,'0');const secs=(best.timeSeconds%60).toString().padStart(2,'0');els.statBest.textContent=`${mins}:${secs}`}
+  else els.statBest.textContent='--';
+}
+function startGame(){
+  const name=document.getElementById('playerName').value.trim();
+  if(!name){alert('Por favor escribe tu nombre');return}
+  if(!gameState.active||!gameState.image){alert('El juego aún no está configurado. Vuelve más tarde.');return}
+  currentGame.playerName=name;currentGame.piecesPlaced=0;currentGame.startTime=Date.now();
+  document.getElementById('displayPlayerName').textContent=name;
+  document.getElementById('gameStartScreen').classList.add('hidden');
+  document.getElementById('gamePlayArea').classList.remove('hidden');
+  if(gameState.hint){const h=document.getElementById('gameHintDisplay');h.textContent=`💡 Pista: ${gameState.hint}`;h.style.display='block'}
+  initPuzzle();startTimer();
+}
+function startTimer(){
+  currentGame.timerInterval=setInterval(()=>{
+    const elapsed=Math.floor((Date.now()-currentGame.startTime)/1000);
+    const mins=Math.floor(elapsed/60).toString().padStart(2,'0');const secs=(elapsed%60).toString().padStart(2,'0');
+    document.getElementById('timer').textContent=`${mins}:${secs}`;
+  },1000);
+}
+function initPuzzle(){
+  const board=document.getElementById('puzzleBoard'),pool=document.getElementById('piecesPool');
+  board.innerHTML='';pool.innerHTML='';
+  const pieces=[];
+  for(let i=0;i<10;i++){
+    const slot=document.createElement('div');slot.className='puzzle-slot';slot.dataset.index=i;
+    slot.addEventListener('dragover',e=>{e.preventDefault();e.currentTarget.classList.add('drag-over')});
+    slot.addEventListener('dragleave',e=>e.currentTarget.classList.remove('drag-over'));
+    slot.addEventListener('drop',handleDrop);
+    board.appendChild(slot);pieces.push(i);
+  }
+  currentGame.shuffledPieces=pieces.sort(()=>Math.random()-.5);
+  const img=new Image();img.onload=function(){
+    const pw=img.width/5,ph=img.height/2;
+    currentGame.shuffledPieces.forEach(pos=>{
+      const c=document.createElement('canvas');c.width=pw;c.height=ph;
+      const ctx=c.getContext('2d');const col=pos%5,row=Math.floor(pos/5);
+      ctx.drawImage(img,col*pw,row*ph,pw,ph,0,0,pw,ph);
+      const piece=document.createElement('img');piece.src=c.toDataURL();piece.className='puzzle-piece';piece.draggable=true;
+      piece.dataset.correctIndex=pos;
+      piece.addEventListener('dragstart',e=>{e.target.classList.add('dragging');e.dataTransfer.setData('text/plain',pos);e.dataTransfer.effectAllowed='move'});
+      piece.addEventListener('dragend',e=>e.target.classList.remove('dragging'));
+      piece.addEventListener('touchstart',handleTouchStart,{passive:false});
+      piece.addEventListener('touchmove',handleTouchMove,{passive:false});
+      piece.addEventListener('touchend',handleTouchEnd);
+      pool.appendChild(piece);
+    });
+  };img.src=gameState.image;
+}
+function handleDrop(e){
+  e.preventDefault();const slot=e.currentTarget;slot.classList.remove('drag-over');
+  const dragged=document.querySelector('.puzzle-piece.dragging');if(!dragged||slot.children.length>0)return;
+  const correctIndex=parseInt(dragged.dataset.correctIndex),slotIndex=parseInt(slot.dataset.index);
+  if(correctIndex===slotIndex){
+    slot.appendChild(dragged);dragged.draggable=false;dragged.style.width='100%';dragged.style.height='100%';dragged.style.border='none';dragged.style.boxShadow='none';slot.classList.add('correct');
+    currentGame.piecesPlaced++;document.getElementById('piecesCount').textContent=`${currentGame.piecesPlaced}/10`;
+    if(currentGame.piecesPlaced===10){clearInterval(currentGame.timerInterval);document.getElementById('guessSection').style.display='block';document.getElementById('piecesPool').style.display='none'}
+  }else{slot.style.animation='none';slot.offsetHeight;slot.style.animation='shake .4s ease'}
+}
+let touchPiece=null,touchOffset={x:0,y:0};
+function handleTouchStart(e){e.preventDefault();touchPiece=e.target;const t=e.touches[0],r=touchPiece.getBoundingClientRect();touchOffset={x:t.clientX-r.left,y:t.clientY-r.top};touchPiece.style.position='fixed';touchPiece.style.zIndex='1000';touchPiece.style.width='90px';touchPiece.style.height='90px';moveTouch(t.clientX,t.clientY)}
+function handleTouchMove(e){e.preventDefault();if(!touchPiece)return;const t=e.touches[0];moveTouch(t.clientX,t.clientY);document.querySelectorAll('.puzzle-slot').forEach(s=>{s.classList.remove('drag-over');const r=s.getBoundingClientRect();if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom&&s.children.length===0)s.classList.add('drag-over')})}
+function moveTouch(x,y){touchPiece.style.left=(x-touchOffset.x)+'px';touchPiece.style.top=(y-touchOffset.y)+'px'}
+function handleTouchEnd(e){e.preventDefault();if(!touchPiece)return;const t=e.changedTouches[0];touchPiece.style.position='';touchPiece.style.zIndex='';touchPiece.style.left='';touchPiece.style.top='';let dropped=false;document.querySelectorAll('.puzzle-slot').forEach(slot=>{slot.classList.remove('drag-over');if(dropped)return;const r=slot.getBoundingClientRect();if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom&&slot.children.length===0){const ci=parseInt(touchPiece.dataset.correctIndex),si=parseInt(slot.dataset.index);if(ci===si){slot.appendChild(touchPiece);touchPiece.style.width='100%';touchPiece.style.height='100%';touchPiece.style.border='none';touchPiece.style.boxShadow='none';slot.classList.add('correct');currentGame.piecesPlaced++;document.getElementById('piecesCount').textContent=`${currentGame.piecesPlaced}/10`;if(currentGame.piecesPlaced===10){clearInterval(currentGame.timerInterval);document.getElementById('guessSection').style.display='block';document.getElementById('piecesPool').style.display='none'}dropped=true}}});touchPiece=null}
+function similarity(s1,s2){s1=s1.toLowerCase().trim();s2=s2.toLowerCase().trim();if(s1===s2)return 1;const w1=s1.split(/\s+/),w2=s2.split(/\s+/);let m=0;w1.forEach(a=>w2.forEach(b=>{if(a.includes(b)||b.includes(a))m++}));return Math.min(1,m/Math.max(w1.length,w2.length))}
+function submitGame(){
+  const guess=document.getElementById('playerGuess').value.trim();if(!guess){alert('Escribe tu respuesta antes de enviar');return}
+  const timeSeconds=Math.floor((Date.now()-currentGame.startTime)/1000),sim=similarity(guess,gameState.answer);
+  let score=Math.max(100,1000-(timeSeconds*10));if(sim>=.9)score+=500;score+=Math.floor(sim*300);score=Math.min(2000,Math.max(0,score));
+  const result={player:currentGame.playerName,timeSeconds,pieces:currentGame.piecesPlaced,guess,answer:gameState.answer,similarity:sim,score,date:new Date().toISOString()};
+  gameState.scores.push(result);gameState.scores.sort((a,b)=>b.score-a.score);localStorage.setItem('puzzle_scores',JSON.stringify(gameState.scores));
+  const mins=Math.floor(timeSeconds/60).toString().padStart(2,'0'),secs=(timeSeconds%60).toString().padStart(2,'0');
+  document.getElementById('resultScore').textContent=score;document.getElementById('resultTime').textContent=`${mins}:${secs}`;
+  document.getElementById('resultPieces').textContent=`${currentGame.piecesPlaced}/10`;document.getElementById('resultGuess').textContent=guess;
+  document.getElementById('resultAnswer').textContent=gameState.answer;const modal=document.getElementById('resultModal');
+  const title=document.getElementById('resultTitle'),msg=document.getElementById('resultMessage'),emoji=document.getElementById('resultEmoji');
+  if(sim>=.9){title.textContent='🎉 ¡Excelente!';msg.textContent='¡Adivinaste correctamente! Eres un experto.';emoji.textContent='🏆'}
+  else if(sim>=.5){title.textContent='👍 ¡Muy cerca!';msg.textContent='Casi lo tienes. ¡Buen intento!';emoji.textContent='🥈'}
+  else{title.textContent='😅 ¡Buen esfuerzo!';msg.textContent='No era exactamente eso, pero armaste el puzzle.';emoji.textContent='🧩'}
+  modal.classList.add('show');updateStats();
+}
+function closeResult(){
+  document.getElementById('resultModal').classList.remove('show');
+  document.getElementById('gameStartScreen').classList.remove('hidden');
+  document.getElementById('gamePlayArea').classList.add('hidden');
+  document.getElementById('guessSection').style.display='none';
+  document.getElementById('piecesPool').style.display='flex';
+  document.getElementById('playerGuess').value='';
+  document.getElementById('timer').textContent='00:00';
+  document.getElementById('piecesCount').textContent='0/10';
+}
+function renderLeaderboard(){
+  const scores=gameState.scores,empty=document.getElementById('leaderboardEmpty'),content=document.getElementById('leaderboardContent'),tbody=document.getElementById('leaderboardBody');
+  if(scores.length===0){empty.style.display='block';content.style.display='none';return}
+  empty.style.display='none';content.style.display='block';
+  tbody.innerHTML=scores.slice(0,50).map((s,i)=>{
+    const mins=Math.floor(s.timeSeconds/60).toString().padStart(2,'0'),secs=(s.timeSeconds%60).toString().padStart(2,'0');
+    const rc=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'',medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}`;
+    return `<tr><td class="${rc}">${medal}</td><td><strong>${s.player.replace(/</g,'&lt;')}</strong></td><td>${mins}:${secs}</td><td>${s.pieces}/10</td><td>${s.guess.replace(/</g,'&lt;')} ${s.similarity>=.9?'✅':s.similarity>=.5?'⚠️':'❌'}</td><td><strong>${s.score}</strong> pts</td></tr>`
+  }).join('');
+}
+init();
+</script>
+</body>
+</html>
